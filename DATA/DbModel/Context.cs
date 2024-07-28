@@ -20,6 +20,7 @@ namespace DATA.DbModel
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Users>();
+            modelBuilder.Entity<Customer>();
         }
 
     }
