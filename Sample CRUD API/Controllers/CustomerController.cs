@@ -1,7 +1,11 @@
 ﻿using DATA.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using REPOSITORY.IRepository;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using UTILITY;
 
 namespace Sample_CRUD_API.Controllers
@@ -28,14 +32,19 @@ namespace Sample_CRUD_API.Controllers
                 if (customer != null)
                 {
                     var existingUser = _customerRepository.FindAll(x => x.Email == customer.Email).FirstOrDefault();
+                    //Checking the existing user is empty or not
                     if (existingUser == null)
                     {
+                        customer.Password = PasswordHasher.HashPassword(customer.Password);
+                        customer.IsActive = true;
+                        customer.Role = "User";
+                        customer.Token = "";
                         _customerRepository.Add(customer);
                         var result = new Result()
                         {
                             Status = true,
+                            Item = customer,
                             Message = _settingVariables.CustomerCreated,
-                            Item = "",
                             ErrorMessage = ""
                         };
                         return Ok(result);
@@ -110,12 +119,20 @@ namespace Sample_CRUD_API.Controllers
                     }
                     else
                     {
-                        if (customerLogin.Password == ValidCustomer.Password)
+                        if (PasswordHasher.VerifyPassword(customerLogin.Password, ValidCustomer.Password))
                         {
+                            var CustomerDetails = new CustomerDetails()
+                            {
+                                CustomerId = ValidCustomer.CustomerId,
+                                Name = $"{ValidCustomer.FirstName} {ValidCustomer.LastName}",
+                                Email = ValidCustomer.Email,
+                                Role = ValidCustomer.Role,
+                                Token = CreateJwt(ValidCustomer),
+                            };
                             var result = new Result()
                             {
                                 Status = true,
-                                Item = ValidCustomer,
+                                Item = new {CustomerDetails = CustomerDetails},
                                 Message = _settingVariables.UserLoggedIn,
                                 ErrorMessage = ""
                             };
@@ -154,7 +171,7 @@ namespace Sample_CRUD_API.Controllers
             try
             {
                 var Customers = _customerRepository.GetAll();
-                if (Customers != null)
+                if (Customers.Count() > 0)
                 {
                     var result = new Result()
                     {
@@ -187,6 +204,26 @@ namespace Sample_CRUD_API.Controllers
                 };
                 return BadRequest(badResult);
             }
+        }
+        private string CreateJwt(Customer customer)
+        {
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes("pintusharmaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqweqwe");
+            var identity = new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Role, customer.Role),
+                new Claim(ClaimTypes.Name, $"{customer.FirstName} {customer.LastName}")
+            });
+
+            var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = identity,
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = credentials,
+            };
+            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+            return jwtTokenHandler.WriteToken(token);
         }
     }
 }
