@@ -37,8 +37,9 @@ namespace Sample_CRUD_API.Controllers
                     {
                         customer.Password = PasswordHasher.HashPassword(customer.Password);
                         customer.IsActive = true;
+                        customer.CreatedOn = DateTime.UtcNow;
+                        customer.ModifyOn = DateTime.UtcNow;
                         customer.Role = "User";
-                        customer.Token = "";
                         _customerRepository.Add(customer);
                         var result = new Result()
                         {
@@ -51,26 +52,24 @@ namespace Sample_CRUD_API.Controllers
                     }
                     else
                     {
-                        var result = new Result()
+                        var badResult = new BadRequest()
                         {
                             Status = false,
                             Message = _settingVariables.CustomerAlreadyExist,
-                            Item = "",
-                            ErrorMessage = ""
+                            Trace = ""
                         };
-                        return Ok(result);
+                        return BadRequest(badResult);
                     }
                 }
                 else
                 {
-                    var result = new Result()
+                    var badResult = new BadRequest()
                     {
                         Status = false,
-                        Message = "",
-                        Item = "",
-                        ErrorMessage = "Please enter all fields"
+                        Message = "Please fill all field",
+                        Trace = ""
                     };
-                    return Ok(result);
+                    return BadRequest(badResult);
                 }
             }
             catch (Exception ex)
@@ -94,28 +93,26 @@ namespace Sample_CRUD_API.Controllers
             {
                 if (string.IsNullOrEmpty(customerLogin.Email) || string.IsNullOrEmpty(customerLogin.Password))
                 {
-                    var result = new Result()
+                    var badResult = new BadRequest()
                     {
-                        Status = true,
-                        Message = "",
-                        Item = "",
-                        ErrorMessage = "Please enter all fields"
+                        Status = false,
+                        Message = "Please fill all field",
+                        Trace = ""
                     };
-                    return Ok(result);
+                    return BadRequest(badResult);
                 }
                 else
                 {
                     var ValidCustomer = _customerRepository.FindAll(x => x.Email == customerLogin.Email).FirstOrDefault();
                     if (ValidCustomer == null)
                     {
-                        var result = new Result()
+                        var badResult = new BadRequest()
                         {
-                            Status = true,
-                            Item = "",
+                            Status = false,
                             Message = _settingVariables.UserNotRegister,
-                            ErrorMessage = ""
+                            Trace = ""
                         };
-                        return Ok(result);
+                        return BadRequest(badResult);
                     }
                     else
                     {
@@ -140,14 +137,13 @@ namespace Sample_CRUD_API.Controllers
                         }
                         else
                         {
-                            var result = new Result()
+                            var badResult = new BadRequest()
                             {
-                                Status = true,
-                                Item = "",
+                                Status = false,
                                 Message = _settingVariables.ErrorEmailPassword,
-                                ErrorMessage = ""
+                                Trace = ""
                             };
-                            return Ok(result);
+                            return BadRequest(badResult);
                         }
                     }
                 }

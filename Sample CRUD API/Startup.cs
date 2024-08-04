@@ -30,6 +30,14 @@ namespace Sample_CRUD_API
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowHeaders",
+                    policy =>
+                    {
+                        policy.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true).AllowCredentials();
+                    });
+            });
 
             builder.Services.AddAuthentication(options =>
             {
@@ -47,7 +55,8 @@ namespace Sample_CRUD_API
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("pintusharmaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqweqwe"))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("pintusharmaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqweqwe")),
+                    ClockSkew = TimeSpan.Zero
                 };
 
             });
@@ -59,7 +68,7 @@ namespace Sample_CRUD_API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseCors("AllowHeaders");
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
