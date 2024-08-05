@@ -1,4 +1,5 @@
 ﻿using DATA.Model;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using REPOSITORY.IRepository;
@@ -12,13 +13,13 @@ namespace Sample_CRUD_API.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly SettingVariables _settingVariables;
-
         public UserController(IUserRepository userRepository, SettingVariables settingVariables)
         {
             _userRepository = userRepository;
             _settingVariables = settingVariables;
         }
 
+        [Authorize]
         [HttpGet]
         [Route("GetAllUsers")]
         public IActionResult GetUser()
@@ -61,6 +62,7 @@ namespace Sample_CRUD_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost]
         [Route("AddUsers")]
         public IActionResult AddUser(Users users)
@@ -104,6 +106,7 @@ namespace Sample_CRUD_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet]
         [Route("GetUserbyId{id}")]
         public IActionResult GetUserById(int id)
@@ -146,6 +149,7 @@ namespace Sample_CRUD_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut]
         [Route("UpdateUser")]
         public IActionResult UpdateUser(Users user)
@@ -191,6 +195,7 @@ namespace Sample_CRUD_API.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete]
         [Route("DeleteUser{id}")]
         public IActionResult DeleteUser(int id) 
